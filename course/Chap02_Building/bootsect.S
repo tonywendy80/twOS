@@ -27,7 +27,7 @@ _go:
     mov ax, #0x0200 ! set the foreground-color to GREEN
     mov cx, #25*80  ! one page: 25x80 (hxw)
 _repeat_clean_screen:
-    ESEG
+    seg es ! equal to ESEG
     mov [di], ax
     add di, #2
     loop _repeat_clean_screen

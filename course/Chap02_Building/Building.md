@@ -41,8 +41,8 @@ as86  is an assembler for the 8086..80386 processors.
 | EQU | VIDEO_SEG EQU 0xb800| |
 | SET | VIDEO_SEG SET 0xb800| |
 | .ORG |.org 510| 把LC(location counter)放在510处|
-|SEG|||
-|CSEG/DSEG/ESEG/GSEG|||
+|SEG|SEG ES|仅仅对下一条语句有效|
+|CSEG/DSEG/ESEG/GSEG||仅仅对下一条语句有效；等效于seg cs/ds/es/gs|
 
 
 #### 寻址（addressing）
@@ -128,4 +128,17 @@ as86  is an assembler for the 8086..80386 processors.
     * bbb位 代表background color
     * i位 代表highlight位 （1 - 颜色变浅）
     * fff位 代表foreground color也就是字符颜色
+
+- bbb 或者 fff 颜色表
+
+    |ifff|color|ifff|color|
+    |---|---|---|---|
+    |0000|黑色|1000|深灰|
+    |0001|蓝色|1001|淡蓝|
+    |0010|绿色|1010|淡绿|
+    |0011|青涩|1011|淡青|
+    |0100|红色|1100|淡红|
+    |0101|品红|1101|淡品红|
+    |0110|棕色|1110|黄色|
+    |0111|灰白|1111|白色|
 
