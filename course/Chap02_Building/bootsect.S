@@ -20,16 +20,26 @@ _go:
     mov ds, ax
     mov ax, #VIDEO_SEG
     mov es, ax
+    
+    ! clean the screen
     xor di, di
     xor si, si
+    mov ax, #0x0200 ! set the foreground-color to GREEN
+    mov cx, #25*80  ! one page: 25x80 (hxw)
+_repeat_clean_screen:
+    ESEG
+    mov [di], ax
+    add di, #2
+    loop _repeat_clean_screen
 
     ! write MSG to the begin of the sreen
-    mov ah, #0x07
+    xor di, di
+    xor si, si
     mov cx, MSG_LEN
 _repeat:    
     mov al, MSG[si]
     ESEG
-    mov [di], ax
+    mov [di], al
     inc si
     add di, #2
     loop _repeat
@@ -39,7 +49,7 @@ _die:
     jmp _die
 
 MSG:
-.ASCIZ "Hello, My OS"
+.ASCIZ "Hello, My OS!"
 MSG_LEN:
 .byte *-MSG
 
