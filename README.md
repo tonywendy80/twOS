@@ -1,22 +1,7 @@
 [toc]
 
-## Sample
-### context
-* [x] header <ucontext.h>
-* [x] struct ucontext_t
-* [x] APIS getcontext, setcontext, makecontext, swapcontext
+# 目标
+这个项目(教程)主要是用于linux 0.12内核学习，以增强对系统的了解，改善上层应用开发。
 
+欢迎大家学习交流！
 
-### jmp
-* [x] header <setjmp.h>
-* [x] longjmp 
-* [x] setjmp
-
-### signal
-* [x] header <signal.h>
-* [x] register: sigaction()
-* [x] emit signal: raise()
-
-## boot
-
-## makefile
