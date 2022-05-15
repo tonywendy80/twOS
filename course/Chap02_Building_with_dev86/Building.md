@@ -47,29 +47,39 @@ as86  is an assembler for the 8086..80386 processors.
 
 #### 寻址（addressing）
 - **直接寻址**
+    ```
     ！the jump copies bx into PC(*Program Counter*)
     mov ax, bx
     jmp bx
+    ```
 
 - **简单的间接寻址**
+    ```
     ! the jump moves to the contents of bx into PC.
     mov ax, [bx]
     jmp [bx]
+    ```
 
 - **简单的直接寻址**
+    ```
     mov ax, #0x1234   ！ax = 0x1234
+    ```
 
 - **又一个间接寻址**
+    ```
     mov ax, 0x1234
     mov ax, [0x1234]
     mov ax, _hello
     mov ax, [_hello]  ! ax <- the content in address _hello
+    ```
 
 - **真的，最后一个间接寻址(indexed addressing)**
+    ```
     mov ax, _table[bx]
     mov ax, _table[bx+si]
     mov eax, _table[ebx*4]
-
+    ```
+    
 #### 约定
 如果使用as86的话，源文件是以 .S 为后缀。
 如果使用GNU as的话，源文件以 .s 为后缀。
