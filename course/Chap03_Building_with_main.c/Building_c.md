@@ -15,12 +15,16 @@
 - 详情参考手册`info gas`
 
 
-# 16bits汇编 32bits汇编
+# 16bits汇编 vs. 32bits汇编
 > 使用GNU AS编译汇编源码，如果想编译成16bits在实地址模式下运行，需要使用一个伪操作符号`.code16` or `.code16gcc`。
+
+> 如果要生成32bits代码，用`.code32`。
 
 > 在此中方式中，如果你操作的是32bits操作数，那么生成的机器码前面会有一个 `machine code prefix:0x66`; 如果操作的是32位地址的话，机器码前缀是`0x67`。
 
 
+# .code16 vs. .code16gcc
+- .code16gcc 主要针对的是 calll 和 retl。此时会压EIP和返回EIP(32bits)，而不是IP(16bits)。
 
 # ld script
 基本用法：
@@ -42,7 +46,7 @@
 ![寄存器初始化数值](初始化数值-boot.png)
 此时，EIP = 0x7c00
 
-# 编译16bits程序 FLAGS和查看命令
+# 编译16bits程序 - FLAGS和查看命令
 
     ASFLAGS=--32
     LDFLAGS=-m elf_i386
@@ -50,13 +54,18 @@
     
     asm代码: .code16gcc
 
-    objdump -m i8086 -S xxx.obj
+    objdump -m i8086 -j .text -S xxx.obj
 
 # 第一个简单DEMO（利用了GNU AS语法）
-- 参考代码 boot.s
+- image: boot.bin
+- 参考代码 boot.s boot.lds Makefile
 - 只有汇编代码，而且使用的是GNU AS语法
-- 功能和 Chap02_Building的 DEMO 效果一样
+- 功能和 Chap02_Building_with_dev86 的 DEMO 效果一样
 - 比较两者，可以加深代码理解。很简单！ 加油！！！
 
+
 # 第二个DEMO 加入了main.c
+- image: mixed.bin
+- 参考代码: boot_2m.s, main.c, mixed.lds Makefile
+- 注意：汇编,编译参数 和 .code16gcc
 

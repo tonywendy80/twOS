@@ -5,17 +5,18 @@
 #########################################
 
 ASFLAGS = --32
-CFLAGS = -m32
+CFLAGS = -m32 -c -nostdlib -nostdinc -fno-exceptions -fno-builtin
 LDFLAGS = -m elf_i386
 
 
 .PHONY : all clean
 
 all : boot.bin mixed.bin
+	@echo "all done!"
 
 boot.bin : boot
 	objcopy -O binary $< $@
-	@echo "all done!"
+	@echo "$@ generated successfully!"
 
 boot : boot.o
 boot : boot.lds
@@ -27,14 +28,17 @@ boot.o : boot.s
 ###################################
 
 mixed.bin : mixed
+	objcopy -O binary $< $@
+	@echo "$@ generated successfully!"
 
-mixed : boot_2m.o main.o
+mixed : mixed.lds boot_2m.o main.o
+	ld $(LDFLAGS) -o $@ -T $^
 
 boot_2m.o : boot_2m.s
-
+	as $(ASFLAGS) -o $@ $<
 
 main.o : main.c
-
+	gcc $(CFLAGS) -o $@ $< 
 
 
 clean : 
