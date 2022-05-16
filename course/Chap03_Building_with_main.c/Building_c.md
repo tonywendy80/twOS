@@ -24,7 +24,12 @@
 
 
 # .code16 vs. .code16gcc
-- .code16gcc 主要针对的是 calll 和 retl。此时会压EIP和返回EIP(32bits)，而不是IP(16bits)。
+
+|item|.code16|.code16gcc|desc|
+|---|---|---|---|
+|call|入栈的是IP(2bytes)|EIP(4bytes)||
+|ret|出栈的是IP(2Bytes)|EIP(4bytes)||
+
 
 # ld script
 基本用法：
@@ -37,12 +42,17 @@
         {
             *(.text)
         }
-        .data :
+        .rodata :
         {
-            *(.data)
+            *(.rodata)
+        }
+        .boot_flag 510 :
+        {
+            SHORT(0xAA55)
         }
     }
 
+执行到0x7c00时，各个寄存器初始化数值如下：
 ![寄存器初始化数值](初始化数值-boot.png)
 此时，EIP = 0x7c00
 
@@ -68,4 +78,4 @@
 - image: mixed.bin
 - 参考代码: boot_2m.s, main.c, mixed.lds Makefile
 - 注意：汇编,编译参数 和 .code16gcc
-
+- 注意：会检查段限长64K
