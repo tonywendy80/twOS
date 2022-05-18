@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2022-05-18T09:12:41.955Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36" etag="C5F6s-RaC0md4NXVfhgI" version="18.0.7" type="github" pages="3">
+<mxfile host="app.diagrams.net" modified="2022-05-18T09:34:18.332Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36" etag="DqPNYzvnjLRnk37n0w4M" version="18.0.7" type="github" pages="3">
   <diagram id="W4stZhYzdE9YT1P4c1lH" name="a.out_ld86">
     <mxGraphModel dx="946" dy="537" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" background="#FFFFFF" math="0" shadow="0">
       <root>
@@ -409,6 +409,24 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="lVP0xXubs_wZ-g_K6Vh_-1" value="BYTE0:&amp;nbsp; MAGIC[0]&lt;br&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;BYTE1:&amp;nbsp; MAGIC[1]&lt;/span&gt;&lt;/div&gt;BYTE2:&amp;nbsp; NR_SECTION[0]&lt;br&gt;BYTE3:&amp;nbsp; NR_SECTION[1]&lt;br&gt;BYTE4:&amp;nbsp; CHECKSUM" style="rounded=0;whiteSpace=wrap;html=1;align=left;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="140" y="60" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="lVP0xXubs_wZ-g_K6Vh_-2" value="LONG : TEXT_OFFSET" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="140" y="140" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="lVP0xXubs_wZ-g_K6Vh_-3" value="LONG: LENGTH of text and data" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="140" y="200" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="lVP0xXubs_wZ-g_K6Vh_-4" value="LONG: LENGTH of string table" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="140" y="260" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="lVP0xXubs_wZ-g_K6Vh_-6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="lVP0xXubs_wZ-g_K6Vh_-5" target="lVP0xXubs_wZ-g_K6Vh_-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lVP0xXubs_wZ-g_K6Vh_-5" value="Magic[0] = 0xA3&lt;br&gt;Magic[1] = 0x86&lt;br&gt;NR_SECTIONS = 256 * BYTE3 + BYTE2&lt;br&gt;CHECKSUM = BYTE0 + BYTE1 + BYTE2 + BYTE3&lt;br&gt;(ignore the overflow)" style="text;html=1;strokeColor=#B85450;fillColor=#f8cecc;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="380" y="20" width="300" height="100" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
