@@ -79,7 +79,7 @@ as86  is an assembler for the 8086..80386 processors.
     mov ax, _table[bx+si]
     mov eax, _table[ebx*4]
     ```
-    
+
 #### 约定
 如果使用as86的话，源文件是以 .S 为后缀。
 如果使用GNU as的话，源文件以 .s 为后缀。
@@ -96,6 +96,8 @@ as86  is an assembler for the 8086..80386 processors.
 此处不想展开太多。 详细的使用方法，请参考手册或自行搜索。
     
     objdump86 boot
+    objdump86 -s boot //summary of the size for each section
+    objdump86 -n boot //output the symbol table
 
 # dd
 
