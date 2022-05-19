@@ -148,7 +148,19 @@ struct nlist {
 |N_EXT|0x01||
 
 
+#### Relocation
+```
+struct relocation_info  /* 重定向信息部分 */
+{
+    int r_address;  // 段内需要重定位的地址。
 
+    unsigned int r_symbolnum:24;  // 含义与r_extern有关。指定符号表中一个符号或者一个段。
+    unsigned int r_pcrel:1; // 1位。PC相关标志。即它作为一个相对地址被用于指令当中
+    unsigned int r_length:2;  // 2位。指定要被重定位字段长度（2的次方），0到3分别表示被重定位项的宽度是1B、2B、4B或8B
+    unsigned int r_extern:1;  // 外部标志位。1 - 以符号的值重定位。0 - 以段的地址重定位。
+    unsigned int r_pad:4; // 没有使用的4个位，但最好将它们复位掉。
+};
+```
 
 #### Diagram
 ![Linux0.12 a.out Format](a.out-a.out_gcc140.jpg)
