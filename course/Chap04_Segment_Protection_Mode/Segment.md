@@ -49,10 +49,37 @@
 # 段格式
 ![Segment Descriptor](segment_descriptor.png)
 
+![Code Data and System Segments](segments.png)
+
+![System segment types](system_segment_gate_types.png)
+
+![TSS](tss.png)
+
+![Call Gate](call_gate.png)
+
+![Interrupts](task_interrupt_trap_gate.png)
 
 
 
 # 段限长检查
+- 可以清晰的看出 段描述符中段限长Field总共20bits。
+- 那段限长还和什么有关呢？答案很简单，和G位有关。
+  > G = 1; 段限长单位是4K，也就是一页。
+  > G = 0; 段限长单位是1Byte。
+- `Effecttive limit = G?[LIMIT FIELD]*4K:[LIMIT_FIELD]`
+- 段限长的意义呢？
+  > 这个好玩？要分两种情况分析！
+  >> 1. 向下扩展数据段( TYPE : 01xx ): [limit+1,UpperBound] 能访问。
+  >> 2. Other segments : [0,limit)能访问。
+- 当G=1时；地址的低12位不检查。例如, if the segment limit is 0, offsets 0 through FFFH are still valid.
+
+- 顺便一提，何为UpperBound？怎么决定他的数值呢？
+  ```
+  if( B == 1)
+      UpperBound = 0xFFFFFFFF;
+    else
+      UpperBound = 0xFFFF;
+  ```
 
 
 # 段优先级检查
