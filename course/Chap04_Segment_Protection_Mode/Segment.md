@@ -66,11 +66,11 @@
 - 那段限长还和什么有关呢？答案很简单，和G位有关。
   > G = 1; 段限长单位是4K，也就是一页。
   > G = 0; 段限长单位是1Byte。
-- `Effecttive limit = G?[LIMIT FIELD]*4K:[LIMIT_FIELD]`
+- `Effective limit = G?[LIMIT FIELD]*4K:[LIMIT_FIELD]`
 - 段限长的意义呢？
   > 这个好玩？要分两种情况分析！
-  >> 1. 向下扩展数据段( TYPE : 01xx ): [limit+1,UpperBound] 能访问。
-  >> 2. Other segments : [0,limit)能访问。
+  >> 1. 向下扩展数据段( TYPE : 01xx ): [effective limit+1,UpperBound] 能访问。
+  >> 2. Other segments : [0,effective limit]能访问。
 - 当G=1时；地址的低12位不检查。例如, if the segment limit is 0, offsets 0 through FFFH are still valid.
 
 - 顺便一提，何为UpperBound？怎么决定他的数值呢？
@@ -81,6 +81,14 @@
       UpperBound = 0xFFFF;
   ```
 
+- 怎么用汇编提取limit数值？
+  ```
+  movl $DATA_SEG, %eax
+  lsl %eax, %ebx
+  ```
+  > the result is LIMIT field in SEGMENT DESCRIPTOR when G = 0;
+  > othersize, it's (LIMIT << 12) + 0xFFF when G = 1.
+
 
 # 段优先级检查
 
@@ -90,7 +98,7 @@
 - 而段是通过段选择符来选中的
 - 所以CS,DS中显式部分村的是SELECTOR，而隐式部分才存的是描述符。
 
-![SELECTOR](Selector.png)
+![Selector](Selector.png)
 
 如何加载段选择符？
 
@@ -100,12 +108,35 @@
 
         3. ljmp $SEL, $IP
 
+加载%SS:%ESP的代码示例：
+  ```
+  STACK_SEG = 0x20
+  lss __stack, %esp
+
+  .space 128
+  __stack:
+    .long __stack
+    .word STACK_SEG
+  ```
 
 Note:
 * [x] 不能mov到CS
 
 
 # GDT LDT IDT
+
+
+# 设置GDT
+```
+lgdt __gdt_48
+
+__gdt_48:
+## LIMIT is the total len minus 1 
+.word 5*8-1
+## THIS is VERY IMPORTANT that we have to specify the 'absolute physical address' for GDT
+.long __gdt + (BOOT_SEG<<4)
+```
+> 特别提醒的是GDT的地址一定要是绝对的物理地址，而不是段偏移值！！！
 
 
 # Note

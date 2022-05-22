@@ -12,13 +12,16 @@ LDFLAGS = -m elf_i386 -T lesson.lds
 SRCS = lesson01.s
 OBJECTS =  $(SRCS:%.s=%.o)
 EXES =  $(SRCS:%.s=%)
+BINS = $(SRCS:%.s=%.bin)
 
 .PHONY : all clean
 
-all  : $(EXES)
+all  : $(BINS)
 	@echo "  -- $(EXES)  --"
 	@echo "  (: all done! :)"
 
+$(BINS) : %.bin : %
+	objcopy -O binary $< $@
 
 $(EXES) : % : %.o
 	ld $(LDFLAGS) -o $@ $<
