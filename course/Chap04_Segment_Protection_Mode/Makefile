@@ -31,4 +31,4 @@ $(OBJECTS) : %.o  : %.s
 
 
 clean :
-	rm -rf $(OBJECTS) $(EXES)
+	rm -rf $(OBJECTS) $(EXES) $(BINS)

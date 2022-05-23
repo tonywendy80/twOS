@@ -81,6 +81,7 @@
       UpperBound = 0xFFFF;
   ```
 
+
 - 怎么用汇编提取limit数值？
   ```
   movl $DATA_SEG, %eax
@@ -88,6 +89,12 @@
   ```
   > the result is LIMIT field in SEGMENT DESCRIPTOR when G = 0;
   > othersize, it's (LIMIT << 12) + 0xFFF when G = 1.
+  > It's same as the limit value shown in Bochs when executing 'sreg' or 'info gdt'
+
+- If the limit is set to 0 and G=0, the access to memory location `[BYTE0]` is ok, but failded when accessing memeory location `[BYTE1]`
+![Data Access Violation](ds_access_violation.png)
+
+- If the limit is set to 0 and G=0 and Expand-down, the access to memory location `[BYTE0]` fails, however the access to memory location greater `[BYTE0]` is OK.
 
 
 # 段优先级检查
@@ -143,11 +150,26 @@ __gdt_48:
 - **Segment** is totally different from the **Section** used in object file.
 
 
-# 一个小小DEMO
+# 一个小小DEMO - Lesson01
 - 因为不想牵涉到磁盘数据读写，所以尽量会把代码集中在一个扇区大小(0x200)。这样 BIOS直接就会把代码Download到0x7c00处执行了。一个字，省事儿！！！ 嗯？几个字？
     
 - 主要使用GNU AS来实现。
 
+- 请多多注意：当切换到protected mode时，我们用的是`ljmp $CODE_SEL,$IP`; 然后如果这个代码段是32位的话(D Flag),我们需要切换代码`.code32`到32位。如果D=0的话，就没必要切换了。
 
-# 有一个小小DEMO
+- 显示字符我们使用了 BIOS int $0x10 - 0x13
+  ![BIOS int10](int10_13.png)
+
+- 所有的现实routine都是在16位是地址模式下实现的。
+
+- 另外，请注意函数调用约定：
+    1. 参数是从右往左依次入栈的
+    2. 然后才是IP入栈
+    3. EAX/ECX/EDX 是caller负责维护的
+    4. EBX/ESP/EBP/ESI/EDI 是被调函数维护的
+    5. 返回值会放入EAX 或者 EDX:EAX 或者 其他(return structure)
+
+
+# 又一个小小DEMO - Lesson02
+- 
 

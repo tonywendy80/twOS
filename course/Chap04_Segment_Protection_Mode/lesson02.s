@@ -32,18 +32,11 @@ _go:
 
     movw %cs, %ax
     movw %ax, %ds
+    movw %ax, %es
     movw %ax, %ss
     movw $0, %sp
 
     call _clear_screen
-
-    movw %ds, %ax
-    movw %ax, %es
-
-    pushw $0x0515 ## Cursor Location : Row-5, Column-21
-    pushw $__welcome_msg
-    call _printf16
-    addw $4, %sp
 
     ##########################
     ## Setup GLDT
@@ -66,22 +59,60 @@ _start32:
     movw $VIDEO2_SEG, %ax
     movw %ax, %es
 
-    ## LIMIT Checking
-    ## Attention to the Setting in DS segment 
-    ## You could set the LIMIT field to 0, and then check the follow two instructions' execution
-    #movb (0), %bl
-    #movb (1), %bh
-
     lss __stack, %esp
 
-    ## Retrieving the segment limit
-    movl $STACK_SEG, %ebx
-    lsl %ebx, %eax
-
-    pushl $0x12345678
-
+    pushl $0x05
+    pushl $0x15
+    pushl $__welcome_msg
+    call _printf
+    addl $12, %esp
+    
 _die:
     jmp _die
+
+
+###################################
+## INPUT Params : (char* str, unsigned char row, unsinged char col)
+## Return       : int -- the length of str which is printed
+.type _printf, @function
+_printf:
+    pushw %ebp
+    movw %esp, %ebp
+
+    movw 4(%ebp), %edi
+
+    pushw %edi
+    call _strlen
+    addl $4, %sp
+
+   
+
+    movw %ebp, %esp
+    popw %ebp
+    ret 
+.size _printf,.-_printf
+
+###################################
+## INPUT Params : (char* str)
+## Return       : int - the length of str
+.type _strlen,@function
+_strlen:
+    pushl %ebp
+    movl %esp, %ebp
+    pushl %edi
+    movl 4(%ebp), %edi
+    movl $0, %eax
+    movl  $0xff, %ecx
+    repnz scasb
+    subl 4(%ebp), %edi
+    movl %edi, %eax
+    dec %eax
+    popw %edi
+    movw %ebp, %esp
+    popw %ebp
+    ret
+.size _strlen,.-_strlen
+
 
 .code16
 ###################################
@@ -102,66 +133,14 @@ _clear_screen:
     ret
 .size _clear_screen, .-_clear_screen
 
-###################################
-## INPUT Params : (char* str, unsigned short pos) -- pos = X*Y
-## Return       : int -- the length of str which is printed
-.type _printf16, @function
-_printf16:
-    pushw %bp
-    movw %sp, %bp
-
-    movw 4(%bp), %di
-
-    pushw %di
-    call _strlen16
-    addw $2, %sp
-
-    movw 6(%bp), %dx  ## DH:DL=Row:Column
-    movw %ax, %cx
-    ## AL[bit0] - 0=don't move cursor, 1=move cursor
-    ## AL[bit1] - 0=BL has attributes, 1=string has attributes
-    movw $0x1301, %ax
-    movw $ATTR_CHAR, %bx  ## char attribute in %bl
-
-    pushw %bp
-    movw %di, %bp
-    int $0x10
-    popw %bp
-
-    movw %bp, %sp
-    popw %bp
-    ret 
-.size _printf16,.-_printf16
-
-###################################
-## INPUT Params : (char* str)
-## Return       : int - the length of str
-.type _strlen16,@function
-_strlen16:
-    pushw %bp
-    movw %sp, %bp
-    pushw %di
-    movw 4(%bp), %di
-    movw $0, %ax
-    movw  $0xff, %cx
-    repnz scasb
-    subw 4(%bp), %di
-    movw %di, %ax
-    dec %ax
-    popw %di
-    movw %bp, %sp
-    popw %bp
-    ret
-.size _strlen16,.-_strlen16
 
 
 .section .data
 __welcome_msg:
 .asciz "Hello, MyOS!\r\n"
 
-
 __stack:
-.long 0
+.long 0x10000
 .word STACK_SEG
 
 .align 8
@@ -182,6 +161,6 @@ __gdt:
 .long 0x7c00FFFF, 0x004F9A00 # CS
 .long 0x7c00FFFF, 0x00409200 # DS
 .long 0x80007FFF, 0x0040920B # ES - VIDEO
-.long 0x0000FFFF, 0x00019240 # SS
+.long 0x0000FFFF, 0x00409240 # SS
 
 .section .bss
