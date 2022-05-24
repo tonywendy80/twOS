@@ -61,8 +61,8 @@ _start32:
 
     lss __stack, %esp
 
-    pushl $0x05
     pushl $0x15
+    pushl $0x5
     pushl $__welcome_msg
     call _printf
     addl $12, %esp
@@ -76,19 +76,46 @@ _die:
 ## Return       : int -- the length of str which is printed
 .type _printf, @function
 _printf:
-    pushw %ebp
-    movw %esp, %ebp
+    pushl %ebp
+    movl %esp, %ebp
+    pushl %esi
+    pushl %edi
 
-    movw 4(%ebp), %edi
-
-    pushw %edi
+    # Calc the string len
+    movl 8(%ebp), %esi
+    pushl %esi
     call _strlen
-    addl $4, %sp
+    addl $4, %esp
+    movl %eax, %ecx
 
-   
+    # Calc the dest/video-mem addr based on position(x,y)
+    mov 0x0c(%ebp), %eax
+    movl $160, %edx
+    mulb %dl
+    movl 0x10(%ebp), %edx
+    shl $1, %edx
+    addl %edx, %eax
+    movl %eax, %edi
 
-    movw %ebp, %esp
-    popw %ebp
+_printf_loop:
+    movb %ds:(%esi), %al
+    movl $0x160, %edx
+    cmpb $0x0a, %al # '\n'
+    jz _printf_stepforward
+    cmpb $0x0d, %al # '\r'
+    jz _printf_stepforward
+    movl $0x02, %edx
+_printf_out:
+    movb %al, %es:(%edi)
+_printf_stepforward:
+    inc %esi
+    addl %edx, %edi
+    loop _printf_loop
+
+    popl %edi
+    popl %esi
+    movl %ebp, %esp
+    popl %ebp
     ret 
 .size _printf,.-_printf
 
@@ -100,16 +127,18 @@ _strlen:
     pushl %ebp
     movl %esp, %ebp
     pushl %edi
-    movl 4(%ebp), %edi
-    movl $0, %eax
+    movl 8(%ebp), %edi
     movl  $0xff, %ecx
-    repnz scasb
-    subl 4(%ebp), %edi
+_strlen_loop:
+    inc %edi
+    cmpb $0, -1(%edi)
+    loopnz _strlen_loop
+    subl 8(%ebp), %edi
     movl %edi, %eax
     dec %eax
-    popw %edi
-    movw %ebp, %esp
-    popw %ebp
+    popl %edi
+    movl %ebp, %esp
+    popl %ebp
     ret
 .size _strlen,.-_strlen
 
@@ -132,7 +161,6 @@ _clear_screen:
     popw %bp
     ret
 .size _clear_screen, .-_clear_screen
-
 
 
 .section .data

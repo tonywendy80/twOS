@@ -79,3 +79,9 @@
 - 参考代码: boot_2m.s, main.c, mixed.lds Makefile
 - 注意：汇编,编译参数 和 .code16gcc
 - 注意：会检查段限长64K
+- 另外，请注意函数调用约定：
+    1. 参数是从右往左依次入栈的
+    2. 然后才是IP入栈
+    3. AX/CX/DX 是caller负责维护的
+    4. BX/SP/BP/SI/DI 是被调函数维护的
+    5. 返回值会放入AX

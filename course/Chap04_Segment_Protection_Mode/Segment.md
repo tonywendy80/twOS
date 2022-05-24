@@ -96,6 +96,7 @@
 
 - If the limit is set to 0 and G=0 and Expand-down, the access to memory location `[BYTE0]` fails, however the access to memory location greater `[BYTE0]` is OK.
 
+- Note that when scaling is used (G flag is set), the lower 12 bits of a segment offset (address) are not checked against the limit; for example, note that if the segment limit is 0, offsets 0 through FFFH are still valid.
 
 # 段优先级检查
 
@@ -157,19 +158,17 @@ __gdt_48:
 
 - 请多多注意：当切换到protected mode时，我们用的是`ljmp $CODE_SEL,$IP`; 然后如果这个代码段是32位的话(D Flag),我们需要切换代码`.code32`到32位。如果D=0的话，就没必要切换了。
 
-- 显示字符我们使用了 BIOS int $0x10 - 0x13
-  ![BIOS int10](int10_13.png)
-
-- 所有的现实routine都是在16位是地址模式下实现的。
-
-- 另外，请注意函数调用约定：
-    1. 参数是从右往左依次入栈的
-    2. 然后才是IP入栈
-    3. EAX/ECX/EDX 是caller负责维护的
-    4. EBX/ESP/EBP/ESI/EDI 是被调函数维护的
-    5. 返回值会放入EAX 或者 EDX:EAX 或者 其他(return structure)
+- 包括内容：
+  1. 如何家在GDT进入GDTR中
+  2. 如何获取Segment Limit
+  3. 段现场检查 - 什么时候violation？
+  4. 段中D/B的含义 
+  5. 段中G的含义
 
 
 # 又一个小小DEMO - Lesson02
 - 
+
+# 一个改进的小小DEMO - Lesson03
+- 利用c来实现 字符串的显示
 

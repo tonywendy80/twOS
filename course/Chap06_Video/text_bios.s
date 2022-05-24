@@ -1,22 +1,17 @@
 ################################
 ## Author : tonyma
-## Date   : 2022-05-20 Love Day
+## Date   : 2022-05-24 Love Day
 ## Email  : tonywendy80@qq.com
 ##
 ## All rights reserved by tonywendy80
 ##############################################
 
-SCREEN_CHARS = 2000
-ATTR_CHAR = 0x02
+SCREEN_CHARS_NUM = 2000
+ATTR_CHAR        = 0x02
 
 ## in Real-mode
 BOOT_SEG  = 0x07c0
-
-## in Protected-mode
-CODE_SEG = 0x08
-DATA_SEG = 0x10
-VIDEO_SEG = 0x18
-STACK_SEG = 0x20
+VIDEO_SEG = 0xb800
 
 .globl _start
 .section .text
@@ -33,6 +28,15 @@ _go:
     movw %ax, %ss
     movw $0, %sp
 
+    call _clear_screen
+
+    movw %ds, %ax
+    movw %ax, %es
+
+    pushw $0x0515 ## Cursor Location : Row-5, Column-21
+    pushw $__welcome_msg
+    call _printf16
+    addw $4, %sp
 
     ##########################
     ## Before changing the system setting, disable interrupt from outsides
@@ -56,7 +60,7 @@ _go:
 _start32:
     movw $DATA_SEG, %ax
     movw %ax, %ds
-    movw $VIDEO_SEG, %ax
+    movw $VIDEO2_SEG, %ax
     movw %ax, %es
 
     ## LIMIT Checking
@@ -65,26 +69,92 @@ _start32:
     #movb (0), %bl
     #movb (1), %bh
 
-    ## load data into %ss:%esp
     lss __stack, %esp
 
     ## Retrieving the segment limit
     movl $STACK_SEG, %ebx
     lsl %ebx, %eax
 
-    ## Operation on stack
     pushl $0x12345678
-    popl %eax
 
+    
     #################################
     ## enable interrupt before entering the main body
     sti
 
-    #################################
-    ## BODY
-
 _die:
     jmp _die
+
+.code16
+###################################
+## No Input Params
+## Returns : None
+.type _clear_screen, @function
+_clear_screen:
+    pushw %bp
+    movw %sp, %bp
+    movw $VIDEO_SEG, %ax
+    movw %ax, %es
+    mov $SCREEN_CHARS, %cx
+    movw $0x0200, %ax
+    xor %di, %di
+    rep stosw
+    movw %bp, %sp
+    popw %bp
+    ret
+.size _clear_screen, .-_clear_screen
+
+###################################
+## INPUT Params : (char* str, unsigned short pos) -- pos = X*Y
+## Return       : int -- the length of str which is printed
+.type _printf16, @function
+_printf16:
+    pushw %bp
+    movw %sp, %bp
+
+    movw 4(%bp), %di
+
+    pushw %di
+    call _strlen16
+    addw $2, %sp
+
+    movw 6(%bp), %dx  ## DH:DL=Row:Column
+    movw %ax, %cx
+    ## AL[bit0] - 0=don't move cursor, 1=move cursor
+    ## AL[bit1] - 0=BL has attributes, 1=string has attributes
+    movw $0x1301, %ax
+    movw $ATTR_CHAR, %bx  ## char attribute in %bl
+
+    pushw %bp
+    movw %di, %bp
+    int $0x10
+    popw %bp
+
+    movw %bp, %sp
+    popw %bp
+    ret 
+.size _printf16,.-_printf16
+
+###################################
+## INPUT Params : (char* str)
+## Return       : int - the length of str
+.type _strlen16,@function
+_strlen16:
+    pushw %bp
+    movw %sp, %bp
+    pushw %di
+    movw 4(%bp), %di
+    movw $0, %ax
+    movw  $0xff, %cx
+    repnz scasb
+    subw 4(%bp), %di
+    movw %di, %ax
+    dec %ax
+    popw %di
+    movw %bp, %sp
+    popw %bp
+    ret
+.size _strlen16,.-_strlen16
 
 
 .section .data
