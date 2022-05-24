@@ -70,7 +70,40 @@
 |CGA|||Color Graphics Adapter|
 |VGA|0xa0000 - 0xa8000|8 Pages|Video Graphics Adapter|
 
-# 字符模式方法一： BIOS routine
+# 字符模式 方法一： BIOS routine
 
 ![BIOS int10](int10_13.png)
+
+请参考源码 `_printf@text_bios.s`
+
+
+# 字符模式 方法二：直接操作VIDEO MEMORY
+请参考源码 `_printf@text_mem.s`
+
+
+# 字符模式方法三：操作VIDEO IO
+#### Registers -- specific to CGA/VGA/EGA
+
+|Register|PORT|Description|
+|---|---|---|
+|Index Register|0x3d4||
+|Data Register|0x3d5||
+
+|Index|Data Register|
+|---|---|
+|r14 - 0x0e|high byte of cursor position|
+|r15 - 0x0f|lower byte of cursor position|
+
+#### Registers -- specific to MDA
+
+|Register|PORT|Description|
+|---|---|---|
+|Index Register|0x3b4||
+|Data Register|0x3b5||
+
+
+#### sample video_io.s
+- ***__pos*** - used to save the current cursor position
+- ***_printf*** - print one string
+- ***_put_char*** - dump char to screen, pay attention to '\r' and '\n'
 
