@@ -37,6 +37,15 @@ _go:
 
 
 _die:
+    # get char from the keyboard
+    movb $0, %ah
+    int $0x16
+
+    movb $ATTR_CHAR, %ah
+    pushw %ax
+    call _put_char
+    addw $2, %sp
+
     jmp _die
 
 
