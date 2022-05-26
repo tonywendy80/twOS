@@ -133,3 +133,4 @@ Error Register:
    - outb (0x1F5, LBA3)
 
 4. Send the "READ SECTORS EXT" command (0x24) to port 0x1F7: outb(0x1F7, 0x24)
+
