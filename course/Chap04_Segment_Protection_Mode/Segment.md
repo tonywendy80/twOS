@@ -10,6 +10,7 @@
     6. 段优先级检查
     7. 段选择符
     8. GDT LDT IDT
+    9. A20
 
 本章内容比较多，主要就是INTEL CPU方面的知识，还是比较重要的。大家可以多花点精力，不清楚的地方可能还需要你网上多多查找有关资料，或者写代码在虚拟机BOCHS或者QEMU上验证下。
 
@@ -25,6 +26,25 @@
 |地址计算方式|(CS<<4)+IP|CS(selector) -> DT -> Base + IP|
 |段LIMIT|64K|基于段描述符里的LIMIT字段和G字段|
 |权限||优先级检查|
+
+# A20
+计算机启动时，默认是开启A20的。
+
+两种方式可以开启A20，一种是通过键盘控制端口0x60；另外一种是快速A20寄存器，端口是0x92。
+
+- Write '1' to 键盘控制器端口0x60
+  *TBD*
+
+- Wirte '1' to 快速A20寄存器0x92
+  |Bit1|Bit0|
+  |---|---|
+  |1:计算机重启|1:开启A20|
+
+  ```
+  in $0x92, %al
+  orb $0x02, %al
+  outb %al, $0x92
+  ```
 
 
 # 保护模式开启之路
@@ -48,6 +68,8 @@
 
 # 段格式
 ![Segment Descriptor](segment_descriptor.png)
+
+> Bit11 in **Type Field** 被认为是Execute位。
 
 ![Code Data and System Segments](segments.png)
 
@@ -94,7 +116,7 @@
 - If the limit is set to 0 and G=0, the access to memory location `[BYTE0]` is ok, but failded when accessing memeory location `[BYTE1]`
 ![Data Access Violation](ds_access_violation.png)
 
-- If the limit is set to 0 and G=0 and Expand-down, the access to memory location `[BYTE0]` fails, however the access to memory location greater `[BYTE0]` is OK.
+- If the limit is set to 0 and G=0 and Expand-down, the access to memory location `[BYTE0]` fails, however the access to memory location greater than `[BYTE0]` is OK.
 
 - Note that when scaling is used (G flag is set), the lower 12 bits of a segment offset (address) are not checked against the limit; for example, note that if the segment limit is 0, offsets 0 through FFFH are still valid.
 
@@ -151,7 +173,7 @@ __gdt_48:
 - **Segment** is totally different from the **Section** used in object file.
 
 
-# 一个小小DEMO - Lesson01
+# 一个小小DEMO - Lesson01 (enter protected-mode)
 - 因为不想牵涉到磁盘数据读写，所以尽量会把代码集中在一个扇区大小(0x200)。这样 BIOS直接就会把代码Download到0x7c00处执行了。一个字，省事儿！！！ 嗯？几个字？
     
 - 主要使用GNU AS来实现。
@@ -166,9 +188,83 @@ __gdt_48:
   5. 段中G的含义
 
 
-# 又一个小小DEMO - Lesson02
-- 
+# 又一个小小DEMO - Lesson02 (stack)
 
-# 一个改进的小小DEMO - Lesson03
-- 利用c来实现 字符串的显示
+**这个demo中 stack用的是向下扩展的数据段。**
+你可以修改跳转到不同的模式下，来验证stack操作行为。
+
+- In real-mode
+  ```
+    ## stack ops in real-mode
+    push $0xfab1
+    pushw $0xfab2
+    pushl $0xfab3
+    movw $0xdeaf, %ax
+    push %ax
+    pushw %ax
+    pushl %eax
+  ```
+  ![16bits real-mode](stack_16bits_realmode.png)
+
+- In 16bits protected-mode
+  ```
+    push $0xfab1
+    pushw $0xfab2
+    pushl $0xfab3
+    movw $0xdeaf, %ax
+    push %ax
+    pushw %ax
+    pushl %eax
+  ```
+  ![16bits stack](stack16_code16_protectedmode.png)
+  ![32bits stack](stack32_code16_protectedmode.png)
+
+- In 32bits protected-mode
+  ```
+    push $0xfab1
+    pushw $0xfab2
+    pushl $0xfab3
+    movw $0xdeaf, %ax
+    push %eax
+    pushw %ax
+    pushl %eax
+  ```
+  ![16bits stack](stack16_code32_protmode.png)
+  ![32bits stack](stack32_code32_protmode.png)
+  > 堆栈段使用的是向下扩展的段
+  > 为啥使用32bits的stack时，修改不了内存？ 因为此处位ROM所用修改不了，不过可以看到ESP的大小变化。
+
+* 总结
+  1. Operand size - 决定了the amount by which the stack pointer is decremented (2, 4 or 8).
+
+  2. Operand size - 受代码段中D标志和0x66前缀的影响。
+
+  3. Stack-address size - 受SS段中B标志影响。
+      - ESP used in case of B = 1;
+      - SP used in case of B = 0; 
+
+  4. 压栈要么是2字节，要么是4字节，或者8字节。千万注意：没有一字节！！！
+
+  5. 0x66 Operand Prefix 和 0x67 Addressing Prefix受汇编代码的影响。
+
+* 注意
+  1. 对于汇编命令lss __stack, %esp or lss __stack, %sp
+      - 如果使用的是%sp，那么__stack内存如下设置：
+        ```
+        __stack:
+          .word 0x0000
+          .word STACK16_SEG
+        ```
+      - 如果使用的是%esp，那么__stack内存设置如下：
+        ```
+        __stack:
+          .long 0x00000000
+          .word STACK16_SEG
+        ```
+
+# 继续小小DEMO - Lesson03 （A20）
+- 查看A20地址线的开启
+- 系统启动后默认是A20地址线是开启的
+- 禁用后，写到地址0x100000的数据会unwind到地址0x00处。
+
 
