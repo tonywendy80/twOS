@@ -21,7 +21,7 @@
 
 
 # 异常
-
+![exceptions](exceptions.png)
 
 
 
@@ -32,6 +32,7 @@
 
 
 # IF
+
 
 # Interrupt Gate vs. Trap Gate
 
