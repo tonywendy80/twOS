@@ -19,13 +19,11 @@ HOUR_OFF  = TIMER_OFF
 MIN_OFF   = HOUR_OFF + 3
 SEC_OFF   = MIN_OFF + 3
 
-.globl _start
+.globl _start32
 
-.code16
+.code32
 .section .text
-_start:
-    ljmp $BOOT_SEG, $_go
-_go:
+_start32:
     movw %cs, %ax
     movw %ax, %ds
 

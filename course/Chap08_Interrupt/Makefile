@@ -9,7 +9,9 @@
 ASFLAGS = --32
 LDFLAGS = -m elf_i386 -T link.lds
 
-SRCS = basic.s
+BOOT_SRC = boot.s
+BOOT_OBJ = boot.o
+SRCS = basic.s lesson01.s
 OBJECTS =  $(SRCS:%.s=%.o)
 EXES =  $(SRCS:%.s=%)
 BINS = $(SRCS:%.s=%.bin)
@@ -23,12 +25,14 @@ all  : $(BINS)
 $(BINS) : %.bin : %
 	objcopy -O binary $< $@
 
-$(EXES) : % : %.o
-	ld $(LDFLAGS) -o $@ $<
+$(EXES) : % : %.o $(BOOT_OBJ)
+	ld $(LDFLAGS) -o $@ $^
 
 $(OBJECTS) : %.o  : %.s
 	as $(ASFLAGS) -o $@ $<
 
+$(BOOT_OBJ) : $(BOOT_SRC)
+	as $(ASFLAGS) -o $@ $<
 
 clean :
-	rm -rf $(OBJECTS) $(EXES) $(BINS)
+	rm -rf $(OBJECTS) $(EXES) $(BINS) $(BOOT_OBJ)
