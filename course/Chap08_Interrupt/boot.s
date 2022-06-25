@@ -33,6 +33,12 @@ HD0_DEVICE_PORT = HD0_BASEPORT + 6
 HD0_CMD_PORT = HD0_BASEPORT + 7
 HD0_STATUS_PORT = HD0_CMD_PORT
 
+LBA28_DEVICE_MASTER = 0xe0 #HD0
+LBA28_DEVICE_SLAVE  = 0xf0 #HD1
+
+CMD_READ = 0x20
+CMD_WRITE = 0x30
+
 .globl _start
 
 .code16
@@ -100,11 +106,11 @@ _load_system:
     movw $HD0_ADDR3_PORT, %dx
     outb %al,  %dx
 
-    movb $0xe0, %al
+    movb $LBA28_DEVICE_MASTER, %al
     movw $HD0_DEVICE_PORT, %dx
     outb %al, %dx
 
-    movb $0x20, %al
+    movb $CMD_READ, %al
     movw $HD0_CMD_PORT, %dx
     outb %al, %dx
 
