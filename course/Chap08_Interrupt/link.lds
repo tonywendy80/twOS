@@ -5,8 +5,12 @@
 ** All rights reserved by tonywendy80@qq.com
 */
 
-SYSTEM_VMA_BEG = 0x9000;
-SYSTEM_VMA_END = 0xA000;
+
+/*
+**  SYSTEM SIZE = 1 page
+*/
+SYSTEM_VMA_BEG = 0x0000;
+SYSTEM_VMA_END = 0x1000;
 
 ENTRY(_start)
 

@@ -8,12 +8,12 @@
 ## All rights reserved by tonywendy80
 ##############################################
 
-SYSTEM_VMA = 0x9000
+SYSTEM_VMA = 0x90000
 
 ## Protected-mode
 NULL_CORE_SEG  = 0x00
 CODE_CORE_SEG  = 0x08
-DATA_CORE_SEG  = 0x10
+DATA_CORE_SEG  = 0x10 # must be same as DATA_SEG in boot.s
 STACK_CORE_SEG = 0x18
 VIDEO_CORE_SEG = 0x20
 DATA_4G_SEG    = 0x28
@@ -40,6 +40,9 @@ SECOND_POS = 15*160+15*2
 
     .code32
 _start32:
+    movw $DATA_CORE_SEG, %ax
+    movw %ax, %ds
+
     ##############################
     # init GDT again
     lgdt __gdt48
@@ -74,8 +77,8 @@ _go32:
     movw $0x8e00, %dx
     leal __idt, %edi
 _next_idt_entry:
-    movl %eax, %es:(%edi)
-    movl %edx, %es:4(%edi)
+    movl %eax, (%edi)
+    movl %edx, 4(%edi)
     addl $8, %edi
     loop _next_idt_entry
 
@@ -84,8 +87,8 @@ _next_idt_entry:
     leal _rtc_handler, %edx
     movw %dx, %ax
     movw $0x8e00, %dx
-    movl %eax, %es:(%edi)
-    movl %edx, %es:4(%edi)
+    movl %eax, (%edi)
+    movl %edx, 4(%edi)
 
     # load idtr
     lidt __idt48
@@ -120,29 +123,42 @@ _next_idt_entry:
     outb %al, $0xA1
     .word 0x00eb, 0x00eb
 
-    movb $0x00, %al
+    movb $0xfe, %al
+    outb %al, $0xa1
+    movb $0xfa, %al
     outb %al, $0x21
     .word 0x00eb, 0x00eb
-    outb %al, $0xA1
-    .word 0x00eb, 0x00eb
-
+    
 
     ##############################
     # RTC
+    # Set RTC with Update-Interrupt Enabled
     movb $0x8b, %al
     outb %al, $0x70
     movb $0x12, %al
     outb %al, $0x71
 
+    # Read RTC status
+    movb $0x0c, %al
+    outb %al, $0x70
+    inb $0x71, %al
+
     sti
+    
 
 _die:
     jmp _die
 
 _intr_handler:
+    movb $EOI, %al
+    outb %al, $0xa0
+    outb %al, $0x20
     iret
 
 _trap_handler:
+    movb $EOI, %al
+    outb %al, $0xa0
+    outb %al, $0x20
     iret
 
 _rtc_handler:
@@ -194,17 +210,17 @@ __user_stack:
 __gdt:
 .long 0,0 # NULL
 
-.long 0x9000FFFF, 0x00409a00 # CS 32bits
-.long 0x9000FFFF, 0x00409200 # DS 32bits
-.long 0x9000FFFF, 0x00409600 # SS 32bits - ExpandDown 0x200000
+.long 0x0000FFFF, 0x00409a09 # CS 32bits
+.long 0x0000FFFF, 0x00409209 # DS 32bits - Must be same as DS in boot.s
+.long 0x0000FFFF, 0x00409609 # SS 32bits - ExpandDown 0x200000
 .long 0x80007FFF, 0x0040920B # ES 32bits - Video
 
 .long 0x0000ffff, 0x008f9200 # DS 0-4G RW
 
-.word 4*8-1, __ldt0+SYSTEM_VMA, 0xe200, 0x0000 # LDT0
-.word 0x67, __tss0+SYSTEM_VMA, 0xe900, 0x0000 # TSS0
-.long 0x9000FFFF, 0x00409e00 # Code Segment - Conforming
-.word _die, CODE_CORE_SEG, 0x8c00, 0x0 # Call Gate
+.word 4*8-1, __ldt0+(SYSTEM_VMA&0xffff), 0xe200+((SYSTEM_VMA>>16)&0xff), ((SYSTEM_VMA>>16)&0xff00) # LDT0
+.word 0x67, __tss0+(SYSTEM_VMA&0xffff), 0xe900+((SYSTEM_VMA>>16)&0xff), ((SYSTEM_VMA>>16)&0xff00) # TSS0
+.long 0x0000FFFF, 0x00409e00 # Code Segment - Conforming
+.word _die, CODE_SEG, 0x8c00, 0x0 # Call Gate
 
 __gdt48:
 ## LIMIT is the total len minus 1 
@@ -214,8 +230,8 @@ __gdt48:
 
 __ldt0:
 .long 0,0 # NULL
-.long 0x9000FFFF, 0x004FFA00 #Code User mode
-.long 0x9000FFFF, 0x0040F200 #Data User mode
+.long 0x0000FFFF, 0x004FFA09 #Code User mode
+.long 0x0000FFFF, 0x0040F209 #Data User mode
 .long 0x0000FFFF, 0x0040F620 #Stack User mode, ExpandDown
 
 __idt:

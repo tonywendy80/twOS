@@ -7,7 +7,10 @@
 ##############################################
 
 BOOT_SEG   = 0x07c0
-VIDEO_SEG  = 0xb800
+
+SYSTEM_SEG = 0x9000
+SYSTEM_NR_SECTORS = 8
+SYSTEM_SECTOR1    = 1
 
 CHAR_ATTR = 0x02   # GREEN
 
@@ -18,10 +21,6 @@ STACK_SEG = 0x18
 VIDEO_SEG = 0x20
 DATA_4G_SEG = 0x28
 
-SYSTEM_VMA_BEG = 0x9000
-SYSTEM_VMA_END = 0xA000
-SYSTEM_NR_SECTORS = 1
-SYSTEM_FIRST_SECTOR = 1
 
 HD0_BASEPORT = 0x1f0
 HD0_DATA_PORT = HD0_BASEPORT
@@ -48,8 +47,6 @@ _start:
 _go:
     movw %cs, %ax
     movw %ax, %ds
-
-    movw $VIDEO_SEG, %ax
     movw %ax, %es
 
     ###############################
@@ -57,14 +54,13 @@ _go:
     cli
 
     ###############################
-    ## load system into
-    pushw $SYSTEM_VMA_BEG
+    ## load system
+    pushw $SYSTEM_SEG
     pushw $SYSTEM_NR_SECTORS
-    pushw  $SYSTEM_FIRST_SECTOR
+    pushw  $SYSTEM_SECTOR1
     call _load_system
     addw $6, %sp
 
-    jmp _idle
 
     ###############################
     ## init GDT
@@ -82,10 +78,11 @@ _idle:
     hlt
     jmp _idle
 
-###############################
+############################### 
 ## Function : _load_system
-## Input    : (start_sector, nr of sector, vma_start) - limitation: nr of sector should be less than 65535
+## Input    : (start_sector, nr of sector, vma_seg) - limitation: nr of sector should be less than 65535
 ## Output   : none
+## Desc     : in real mode
 .type _load_system, @function
 _load_system:
     pushw %bp
@@ -124,11 +121,11 @@ _data_ready_checking:
 _data_reading:
     movw 6(%bp), %cx
     shl $0x8, %cx
-    movw 8(%bp), %di
-    movw $HD0_DATA_PORT, %dx
+    movw 8(%bp), %ax
     push %es
-    movw $DATA_4G_SEG, %ax
     movw %ax, %es
+    xor %di, %di
+    movw $HD0_DATA_PORT, %dx
 
 _next_word:
     inw %dx, %ax
@@ -147,9 +144,9 @@ _next_word:
 __gdt_boot:
 .long 0,0
 
-.long 0x9000FFFF, 0x00409a00 # CS 32bits
-.long 0x9000FFFF, 0x00409200 # DS 32bits
-.long 0x9000FFFF, 0x00409600 # SS 32bits - ExpandDown 0x200000
+.long 0x0000FFFF, 0x00409a09 # CS 32bits
+.long 0x0000FFFF, 0x00409209 # DS 32bits
+.long 0x0000FFFF, 0x00409609 # SS 32bits - ExpandDown 0x200000
 .long 0x80007FFF, 0x0040920B # ES 32bits - Video
 
 .long 0x0000ffff, 0x008f9200 # DS 0-4G RW

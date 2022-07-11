@@ -74,6 +74,7 @@ u /n '_startup'
 # symbol使用
 - slist
 - ldsym [global] \<filename\> [offset] - load symbols from file
+- slist \<sym\>
 
 ```
 <bochs:58> ldsym 'boot.sym' 0x07c0
@@ -87,7 +88,7 @@ u /n '_startup'
 怎么生成sym文件呢？
 其实很简单，只要用nm这个linux命令就好了，但是还需要后续的处理如下：
 ```
-nm boot | awk '{ PRINT $1 " " $3}' >boot.sym
+nm boot | awk '{print $1 " " $3}' >boot.sym
 ```
 因为sym文件格式是： `addr sym` of each line
 ```
